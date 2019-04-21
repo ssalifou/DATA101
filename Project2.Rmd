@@ -1,0 +1,44 @@
+---
+title: "SProject2"
+author: "Salifou Sylla"
+date: "April 18, 2019"
+output: html_document
+---
+
+```{r }
+## GET DATA
+##install.packages('WDI')
+library(WDI)
+new_wdi_cache <- WDIcache()
+WDIsearch("gdp.*capita.*US\\$", cache = new_wdi_cache)
+WDIsearch("life expectancy at birth.*total", cache = new_wdi_cache)
+WDIsearch("^mortality.*rate.*infant", cache = new_wdi_cache)
+wdi_dat <- WDI(indicator = c("NY.GDP.PCAP.KD", "SP.DYN.LE00.IN", "SP.DYN.IMRT.IN"), start = 1960, end = 2015, extra = TRUE)
+names(wdi_dat)
+
+## CLEAN UP
+wdi_dat <- subset(wdi_dat, region != "Aggregates") # this also remove NAs
+
+## Now we rename the indicators to something we understand better:
+names(wdi_dat)[which(names(wdi_dat) == "NY.GDP.PCAP.KD")] <- "GDP"
+names(wdi_dat)[which(names(wdi_dat) == "SP.DYN.LE00.IN")] <- "life_expectancy"
+names(wdi_dat)[which(names(wdi_dat) == "SP.DYN.IMRT.IN")] <- "infant_mortality"
+
+## PLOT A GRAPH
+##install.packages('ggplot2')
+install.packages('dplyr')
+library(dplyr)
+library(ggplot2)
+ggplot(subset(wdi_dat, year == '2008'), aes(x = GDP, y = infant_mortality)) + geom_point()
+
+## LIFE EXPECTANCY
+##install.packages("dplyr")
+lifexp_countries <- subset(wdi_dat, country %in% c("United States", "Rwanda", "Mongolia", "Pakistan", "Lao PDR", "Bhutan", "Malaysia", "Brazil", "Japan", "Sweden", "Netherlands"))
+
+ggplot(subset(lifexp_countries, year == '2008'), aes(x = GDP, y = life_expectancy, color = country == "United States")) + geom_point() + geom_text(aes(label = country), size=3, nudge_y = 0.4) + scale_x_continuous(limits = c(0, 70000))
+
+## INFANT MORTALITY
+infmort_countries <- subset(wdi_dat, country %in% c("United States", "Tonga", "Colombia", "Grenada", "Sri Lanka", "Malta", "Germany", "Japan", "Sweden", "Netherlands"))
+
+ggplot(subset(infmort_countries, year == '2008'), aes(x = GDP, y = infant_mortality, color = country == "United States")) + geom_point() + geom_text(aes(label = country), size=3, nudge_y = 0.2) + scale_x_continuous(limits = c(0, 70000))
+```
