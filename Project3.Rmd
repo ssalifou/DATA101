@@ -1,0 +1,96 @@
+---
+title: "PROJECT3"
+author: "Salifou Sylla"
+date: "May 2, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+Groundwater sulfate concentration are monitored at a contaminated site over the course of a year.
+Those concentrations are compared to ones measured at background sites for the same time period. We want to determine if the concentration at the contaminated site is significantly larger than that for the background site. The concentrations of sulfate is  ppm.
+
+We will setup this problem as follows: 
+The null hypothesis, H0 states that the concentrations between both sites is the same; the alternative hypothesis, Ha, states that the contaminated site has a concentration greater than the background.  
+
+```{r }
+library(dplyr)
+library(tidyverse)
+library(ggplot2)
+# Groundwater sulfate concentration are monitored at a contaminated site over the course of a year.
+# Those concentrations are compared to ones measured at background sites for the same time period. We want to determine if the concentration at the contaminated site is significantly larger than that for the background site. The concentrations of sulfate is  ppm.
+
+# We will setup this problem as follows: 
+# The null hypothesis, H0 states that the concentrations between both sites is the same; the alternative hypothesis, Ha, states that the contaminated site has a concentration greater than the background.   
+ssulfconc<- read_csv("GSC.csv")
+str(ssulfconc)
+
+sulfconc.Contaminated.Site<- filter(ssulfconc, SITE == "contaminated")
+str(sulfconc.Contaminated.Site)
+
+print(sulfconc.Contaminated.Site)
+
+contaminated.site.ppm<-sulfconc.Contaminated.Site$ppm
+contaminated.site.ppm
+
+sulfconc.Background.Site<- filter(ssulfconc, SITE == "background")
+str(sulfconc.Background.Site)
+
+print(sulfconc.Background.Site)
+
+background.site.ppm<-sulfconc.Background.Site$ppm
+background.site.ppm
+
+# The means and standard deviations are:
+# Contaminated site: m1 and SD1
+# Background site: m2 and SD2
+
+m1 <- mean(contaminated.site.ppm)
+SD1 <- sd(contaminated.site.ppm)
+m2 <- mean(background.site.ppm)
+SD2 <- sd(background.site.ppm)
+
+m1
+SD1
+m2
+SD2
+
+# The pooled standard error of the mean SE is therefore:
+
+SE <- sqrt(((length(contaminated.site.ppm) - 1) * SD1^2 + (length(background.site.ppm) - 1) * SD2^2)/ (length(contaminated.site.ppm) + length(background.site.ppm) - 2))
+
+# The test statistic t is:
+
+t <- ((mean(contaminated.site.ppm) - mean(background.site.ppm)) - 0)/(SE * sqrt(1/length(contaminated.site.ppm) + 1/length(background.site.ppm)))
+
+# The variable p stores the probability
+
+p <- pt(t, df = length(contaminated.site.ppm) + length(background.site.ppm) - 2, lower.tail = FALSE)
+
+SE
+t
+p
+
+
+## USE OF WELCH's t-test
+#Welch's t-test, or unequal variances t-test is an adaptation of Student's t-test, and is more reliable when the two samples have unequal variances and/or unequal sample sizes. These tests are often referred to as "unpaired" or "independent samples" t-tests. 
+
+
+t.test(contaminated.site.ppm, background.site.ppm, alternative = "greater")
+
+
+qplot(ppm, data=ssulfconc, geom="density", color=SITE, linetype=SITE)
+
+
+```
+
+
+## CONLUSION
+
+One SE is 14.5*sqrt(1/6 + 1/8) = 7.8 ppm, therefore our observed difference of 14.2 ppm (computed from 579.2 - 565) is 1.8SE from the expected difference of 0 (recall that for a t-test SE equals SEpooledsqrt(1/n1 + 1/n2)). Looking up the P value on a Student curve gives us a probability of 0.048 (i.e. there is 4.8% chance that, assuming there is no difference in concentration between sites, the difference means would be greater than that observed by chance variation alone).
+
+
+
